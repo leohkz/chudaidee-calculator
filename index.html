@@ -336,6 +336,44 @@
         const adjectives = ["開心", "憤怒", "悲傷", "興奮", "沮喪", "驚訝", "困惑", "驕傲", "害羞", "無聊"];
         const nouns = ["貓咪", "狗狗", "兔子", "大象", "獅子", "老虎", "猴子", "熊貓", "鸚鵡", "企鵝"];
 
+        // 新增：加載保存的遊戲數據
+        function loadGameData() {
+            const savedData = localStorage.getItem('chudaideeGameData');
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                cumulativeScores = parsedData.cumulativeScores;
+                gameHistory = parsedData.gameHistory;
+                gameCount = parsedData.gameCount;
+                playerNames = parsedData.playerNames;
+                lastWinner = parsedData.lastWinner;
+
+                // 更新 UI
+                updateCumulativeScoresTable();
+                updateGameHistory();
+                updateFirstPlayerIndicator();
+                ['A', 'B', 'C', 'D'].forEach(player => {
+                    document.getElementById(`displayName${player}`).textContent = playerNames[player];
+                    document.getElementById(`header${player}`).textContent = playerNames[player];
+                });
+
+                // 如果有保存的遊戲數據，直接顯示遊戲界面
+                document.getElementById('nameInputs').style.display = 'none';
+                document.getElementById('gameInterface').style.display = 'block';
+            }
+        }
+
+        // 新增：保存遊戲數據
+        function saveGameData() {
+            const gameData = {
+                cumulativeScores,
+                gameHistory,
+                gameCount,
+                playerNames,
+                lastWinner
+            };
+            localStorage.setItem('chudaideeGameData', JSON.stringify(gameData));
+        }
+
         function generateRandomName() {
             const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
             const noun = nouns[Math.floor(Math.random() * nouns.length)];
@@ -353,6 +391,7 @@
             document.getElementById('gameInterface').style.display = 'block';
             updateCumulativeScoresTable();
             updateFirstPlayerIndicator();
+            saveGameData(); // 新增：保存遊戲數據
         }
 
         function toggleNameEdit() {
@@ -367,6 +406,7 @@
                         playerNames[player] = this.value || generateRandomName();
                         displayElement.textContent = playerNames[player];
                         document.getElementById(`header${player}`).textContent = playerNames[player];
+                        saveGameData(); // 新增：保存遊戲數據
                     };
                     displayElement.textContent = '';
                     displayElement.appendChild(input);
@@ -440,6 +480,7 @@
             updateGameHistory();
             updateCumulativeScoresTable();
             updateFirstPlayerIndicator();
+            saveGameData(); // 新增：保存遊戲數據
         }
 
         function updateGameHistory() {
@@ -449,7 +490,7 @@
             ['A', 'B', 'C', 'D'].forEach((player, index) => {
                 const lastGame = gameHistory[gameHistory.length - 1];
                 const cell = newRow.insertCell(index + 1);
-                cell.textContent = `${lastGame.scores[player]}分 (${lastGame.cards[player]}張)`;
+                cell.textContent = `${lastGame.scores[player]}(${lastGame.cards[player]}張)`;
                 if (lastGame.winner === player) {
                     cell.textContent += ' 🏆';
                 }
@@ -481,9 +522,10 @@
                 updateFirstPlayerIndicator();
 
                 // Show first player selection if only one game remains
-                if (gameCount === 0) {
+                if (gameCount === 1) {
                     document.querySelectorAll('.first-player-select').forEach(el => el.style.display = 'inline');
                 }
+                saveGameData(); // 新增：保存遊戲數據
             }
         }
 
@@ -502,6 +544,7 @@
                 }
             });
             updateCumulativeScoresTable();
+            saveGameData(); // 新增：保存遊戲數據
         }
 
         function updateCumulativeScoresTable() {
@@ -530,6 +573,7 @@
                 updateFirstPlayerIndicator();
                 // Show first player selection after reset
                 document.querySelectorAll('.first-player-select').forEach(el => el.style.display = 'inline');
+                saveGameData(); // 新增：保存遊戲數據
             }
         }
 
@@ -566,9 +610,17 @@
                 toggleMode('light');
             }
         }
+        // 頁面加載時執行的初始化函數
+        function initialize() {
+            loadGameData(); // 新增：加載保存的遊戲數據
+            initializeMode();
+            if (gameCount === 0) {
+                document.getElementById('nameInputs').style.display = 'block';
+            }
+        }
 
-        document.getElementById('nameInputs').style.display = 'block';
-        initializeMode();
+        // 當頁面加載完成時調用初始化函數
+        window.onload = initialize;
     </script>
 </body>
 </html>
