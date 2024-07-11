@@ -7,12 +7,12 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f2f2f7;
-            --text-color: #1c1c1e;
-            --header-color: #007aff;
-            --card-bg: #ffffff;
+            --bg-color: #75B0B9;
+            --text-color: #ffffff;
+            --header-color: #e6f971;
+            --card-bg: #344553;
             --input-border: #d1d1d6;
-            --button-bg: #007aff;
+            --button-bg: #b7c55a;
             --button-hover: #0056b3;
             --delete-btn-bg: #ff3b30;
             --delete-btn-hover: #d70015;
@@ -23,7 +23,7 @@
         .dark-mode {
             --bg-color: #1c1c1e;
             --text-color: #ffffff;
-            --header-color: #0a84ff;
+            --header-color: #a2a8ff;
             --card-bg: #2c2c2e;
             --input-border: #3a3a3c;
             --button-bg: #0a84ff;
@@ -77,7 +77,7 @@
 
         .player-name {
             flex-grow: 1;
-            margin-right: 10px;
+            margin-right: 20px;
         }
 
         .card-count {
@@ -349,7 +349,7 @@
 
                 // 更新 UI
                 updateCumulativeScoresTable();
-                updateGameHistory();
+                rebuildGameHistory(); // 新增：重建所有遊戲歷史記錄
                 updateFirstPlayerIndicator();
                 ['A', 'B', 'C', 'D'].forEach(player => {
                     document.getElementById(`displayName${player}`).textContent = playerNames[player];
@@ -359,6 +359,39 @@
                 // 如果有保存的遊戲數據，直接顯示遊戲界面
                 document.getElementById('nameInputs').style.display = 'none';
                 document.getElementById('gameInterface').style.display = 'block';
+            }
+        }
+
+        function rebuildGameHistory() {
+            const table = document.getElementById('historyTable');
+            // 清空現有的歷史記錄（保留表頭）
+            while (table.rows.length > 1) {
+                table.deleteRow(1);
+            }
+            // 重新添加所有歷史記錄
+            gameHistory.forEach((game, index) => {
+                const newRow = table.insertRow(-1);
+                newRow.insertCell(0).textContent = index + 1;
+                ['A', 'B', 'C', 'D'].forEach((player, playerIndex) => {
+                    const cell = newRow.insertCell(playerIndex + 1);
+                    cell.textContent = `${game.scores[player]}分 (${game.cards[player]}張)`;
+                    if (game.winner === player) {
+                        cell.textContent += ' 🏆';
+                    }
+                });
+                const deleteCell = newRow.insertCell(5);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = '刪除';
+                deleteButton.className = 'delete-btn';
+                deleteButton.onclick = function() {
+                    deleteGame(this);
+                };
+                deleteCell.appendChild(deleteButton);
+            });
+
+            // 如果遊戲數大於1，隱藏首位玩家選擇
+            if (gameCount > 1) {
+                document.querySelectorAll('.first-player-select').forEach(el => el.style.display = 'none');
             }
         }
 
